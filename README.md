@@ -29,8 +29,9 @@ terraform destroy
 
 ## List of Scripts Directories
 The following directories contain Terraform scripts. Some of the scripts are dependent on the scripts in the other directories. Wherever there are dependencies like this, it is called out with **DEPENDENCIES**
-* vpc - This contains Terraform scripts to create a VPC with subnet for creating your GCP service resources
-* k8s-cluster - This contains Terraform scripts to create a Kubernetes (K8S) cluster with Istio enabled. **DEPENDENCIES** - The VPC created using the scripts in the directory **vpc** is used to create the K8S cluster.
+* **cs** - This contains Terraform scripts to create a Google Cloud Storage bucket in a given region
+* **vpc** - This contains Terraform scripts to create a VPC with subnet for creating your GCP service resources
+* **k8s-cluster** - This contains Terraform scripts to create a Kubernetes (K8S) cluster with Istio enabled. **DEPENDENCIES** - The VPC created using the scripts in the directory **vpc** is used to create the K8S cluster.
 
 ## References
 * Managing GCP Projects with Terraform - https://cloud.google.com/community/tutorials/managing-gcp-projects-with-terraform
