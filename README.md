@@ -19,6 +19,8 @@ Once you are done with all these steps given above, use the following Terraform 
 ```bash
 # Make the initialization
 terraform init
+# Format the source code
+terraform fmt
 # See the plan of action
 terraform plan
 # Create the infrastructure
@@ -32,6 +34,7 @@ The following directories contain Terraform scripts. Some of the scripts are dep
 * **cs** - This contains Terraform scripts to create a Google Cloud Storage bucket in a given region
 * **vpc** - This contains Terraform scripts to create a VPC with subnet for creating your GCP service resources
 * **k8s-cluster** - This contains Terraform scripts to create a Kubernetes (K8S) cluster with Istio enabled. **DEPENDENCIES** - The VPC created using the scripts in the directory **vpc** is used to create the K8S cluster.
+* **composer** - This contains Terraform scripts to create a Google Composer environment. This has some issues such as it takes pretty long time to create the whole thing. When you destroy, it doesn't destroy the dependent services such as the Google Cloud Storage bucket. **CAUTION** is to be exercised when you are planning to use this for production purposes. Check the warning sign in the [Terraform Documentation](https://www.terraform.io/docs/providers/google/r/composer_environment.html) page before using.
 
 ## References
 * Managing GCP Projects with Terraform - https://cloud.google.com/community/tutorials/managing-gcp-projects-with-terraform
