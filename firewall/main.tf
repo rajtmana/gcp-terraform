@@ -1,0 +1,43 @@
+# Ref - https://www.terraform.io/docs/providers/google/r/storage_bucket.html
+variable "gcp_project" {
+  type    = "string"
+  default = "protean-1217618"
+}
+variable "gcp_region" {
+  type    = "string"
+  default = "europe-west2"
+}
+variable "gcp_zone" {
+  type    = "string"
+  default = "europe-west2-a"
+}
+provider "google" {
+  project = "${var.gcp_project}"
+  region  = "${var.gcp_region}"
+  zone    = "${var.gcp_zone}"
+}
+resource "google_compute_firewall" "mongo_firewall" {
+  name    = "mongo-firewall"
+  network = "${google_compute_network.mservice_network.name}"
+  direction = "INGRESS"
+  allow {
+    protocol = "tcp"
+    ports    = ["27017"]
+  }
+  source_tags = ["mongo-db"]
+}
+
+resource "google_compute_network" "mservice_network" {
+  name                    = "mservice-network"
+  auto_create_subnetworks = false
+}
+resource "google_compute_subnetwork" "mservice_subnetwork" {
+  name          = "mservice-subnetwork"
+  ip_cidr_range = "10.2.0.0/16"
+  region        = "${var.gcp_region}"
+  network       = "${google_compute_network.mservice_network.self_link}"
+  secondary_ip_range {
+    range_name    = "mservice-subnetwork-secondary-range"
+    ip_cidr_range = "192.168.10.0/24"
+  }
+}
