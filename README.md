@@ -32,9 +32,9 @@ terraform destroy
 ## List of Scripts Directories
 The following directories contain Terraform scripts. Some of the scripts are dependent on the scripts in the other directories. Wherever there are dependencies like this, it is called out with **DEPENDENCIES**
 * **cs** - This contains Terraform scripts to create a Google Cloud Storage bucket in a given region
-* **vpc** - This contains Terraform scripts to create a VPC with subnet for creating your GCP service resources
+* **vpc** - This contains Terraform scripts to create a VPC with subnet for creating your GCP service resources. This is created keeping in mind for creating a private K8S cluster. This contains two secondary IP ranges. One secondary range will be used for pod IP addresses. The other secondary range will be used for service ClusterIPs
 * **firewall** - This contains Terraform scripts to create a firewall rule in a given VPC
-* **k8s-cluster** - This contains Terraform scripts to create a Kubernetes (K8S) cluster with Istio enabled. **DEPENDENCIES** - The VPC created using the scripts in the directory **vpc** is used to create the K8S cluster.
+* **k8s-cluster** - This contains Terraform scripts to create a **private Kubernetes (K8S) cluster with Istio enabled**. **DEPENDENCIES** - The VPC created using the scripts in the directory **vpc** is used to create the K8S cluster.
 * **composer** - This contains Terraform scripts to create a Google Composer environment. This has some issues such as it takes pretty long time to create the whole thing. When you destroy, it doesn't destroy the dependent services such as the Google Cloud Storage bucket. **CAUTION** is to be exercised when you are planning to use this for production purposes. Check the warning sign in the [Terraform Documentation](https://www.terraform.io/docs/providers/google/r/composer_environment.html) page before using.
 
 ## References
