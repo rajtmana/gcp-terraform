@@ -35,6 +35,28 @@ provider "google-beta" {
   zone    = "${var.gcp_zone}"
 }
 
+resource "google_compute_network" "mservice_network" {
+  name                    = "mservice-network"
+  auto_create_subnetworks = false
+}
+
+resource "google_compute_subnetwork" "mservice_subnetwork" {
+  name          = "mservice-subnetwork"
+  ip_cidr_range = "10.2.0.0/16"
+  region        = "${var.gcp_region}"
+  network       = "${google_compute_network.mservice_network.self_link}"
+
+  secondary_ip_range {
+    range_name    = "mservice-cluster-secondary-range"
+    ip_cidr_range = "10.96.0.0/11"
+  }
+
+  secondary_ip_range {
+    range_name    = "mservice-service-secondary-range"
+    ip_cidr_range = "10.94.0.0/18"
+  }
+}
+
 resource "google_container_cluster" "mservice" {
   provider   = "google-beta"
   name       = "mservice-dev-cluster"
@@ -55,15 +77,21 @@ resource "google_container_cluster" "mservice" {
     password = ""
   }
 
+  # The desired configuration options for master authorized networks.
+  # Access to the master must be from internal IP addresses. So don't give any CIDR blocks inside
+  # Omit the nested cidr_blocks attribute to disallow external access (except the cluster node IPs, which GKE automatically whitelists).
+  master_authorized_networks_config {
+  }
+
   private_cluster_config {
     enable_private_endpoint = true
     enable_private_nodes    = true
-    master_ipv4_cidr_block  = "172.16.0.0/28"
+    master_ipv4_cidr_block  = "172.16.0.32/28"
   }
 
   ip_allocation_policy {
-    cluster_secondary_range_name = "mservice-pod-secondary-range"
-    services_secondary_range_name = "mservice-service-secondary-range"
+    cluster_secondary_range_name  = "${google_compute_subnetwork.mservice_subnetwork.secondary_ip_range.0.range_name}"
+    services_secondary_range_name = "${google_compute_subnetwork.mservice_subnetwork.secondary_ip_range.1.range_name}"
   }
 
   node_config {
@@ -87,7 +115,7 @@ resource "google_container_cluster" "mservice" {
     }
 
     horizontal_pod_autoscaling {
-      disabled = true
+      disabled = false
     }
 
     istio_config {
@@ -100,14 +128,14 @@ resource "google_container_cluster" "mservice" {
   }
 }
 
-resource "google_container_node_pool" "mservice_preemptible_nodes" {
+resource "google_container_node_pool" "mservice_nodes" {
   name       = "mservice-node-pool"
   region     = "${var.gcp_region}"
   cluster    = "${google_container_cluster.mservice.name}"
   node_count = 1
 
   node_config {
-    preemptible  = true
+    preemptible  = false
     machine_type = "n1-standard-1"
 
     oauth_scopes = [
