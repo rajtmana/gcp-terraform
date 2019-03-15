@@ -47,14 +47,15 @@ resource "google_compute_subnetwork" "mservice_subnetwork" {
   network       = "${google_compute_network.mservice_network.self_link}"
 
   secondary_ip_range {
-    range_name    = "mservice-cluster-secondary-range"
+    range_name    = "mservice-cluster-ip-range"
     ip_cidr_range = "10.96.0.0/11"
   }
 
   secondary_ip_range {
-    range_name    = "mservice-service-secondary-range"
+    range_name    = "mservice-service-ip-range"
     ip_cidr_range = "10.94.0.0/18"
   }
+
 }
 
 resource "google_container_cluster" "mservice" {
@@ -80,9 +81,13 @@ resource "google_container_cluster" "mservice" {
   # The desired configuration options for master authorized networks.
   # Access to the master must be from internal IP addresses. So don't give any CIDR blocks inside
   # Omit the nested cidr_blocks attribute to disallow external access (except the cluster node IPs, which GKE automatically whitelists).
+  # Use this as the whitelisting option
   master_authorized_networks_config {
   }
 
+ # The CIDR block in this section should not overlap with any of the VPC's primary or secondary address range
+ # https://stackoverflow.com/questions/51995973/understanding-master-ipv4-cidr-when-provisioning-private-gke-clusters
+ # https://github.com/GoogleCloudPlatform/gke-networking-demos/tree/master/gke-to-gke-peering
   private_cluster_config {
     enable_private_endpoint = true
     enable_private_nodes    = true
@@ -103,15 +108,17 @@ resource "google_container_cluster" "mservice" {
     ]
 
     labels = {
-      foo = "mservice"
+      service = "mservice"
     }
 
-    tags = ["owner", "rajt"]
+    tags = ["http-server", "https-server"]
   }
 
   addons_config {
+    # Masters run on VMs in Google-owned projects. In a private cluster, you can control access to the master.
+    # A private cluster can use an HTTP(S) load balancer or a network load balancer to accept incoming traffic, even though the cluster nodes do not have public IP addresses.
     http_load_balancing {
-      disabled = true
+      disabled = false
     }
 
     horizontal_pod_autoscaling {
