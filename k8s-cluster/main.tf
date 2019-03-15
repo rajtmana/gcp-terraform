@@ -55,7 +55,6 @@ resource "google_compute_subnetwork" "mservice_subnetwork" {
     range_name    = "mservice-service-ip-range"
     ip_cidr_range = "10.94.0.0/18"
   }
-
 }
 
 resource "google_container_cluster" "mservice" {
@@ -83,11 +82,15 @@ resource "google_container_cluster" "mservice" {
   # Omit the nested cidr_blocks attribute to disallow external access (except the cluster node IPs, which GKE automatically whitelists).
   # Use this as the whitelisting option
   master_authorized_networks_config {
+    cidr_blocks {
+      cidr_block   = "${google_compute_subnetwork.mservice_subnetwork.ip_cidr_range}"
+      display_name = "${google_compute_subnetwork.mservice_subnetwork.name} - IP Range"
+    }
   }
 
- # The CIDR block in this section should not overlap with any of the VPC's primary or secondary address range
- # https://stackoverflow.com/questions/51995973/understanding-master-ipv4-cidr-when-provisioning-private-gke-clusters
- # https://github.com/GoogleCloudPlatform/gke-networking-demos/tree/master/gke-to-gke-peering
+  # The CIDR block in this section should not overlap with any of the VPC's primary or secondary address range
+  # https://stackoverflow.com/questions/51995973/understanding-master-ipv4-cidr-when-provisioning-private-gke-clusters
+  # https://github.com/GoogleCloudPlatform/gke-networking-demos/tree/master/gke-to-gke-peering
   private_cluster_config {
     enable_private_endpoint = true
     enable_private_nodes    = true
@@ -150,6 +153,59 @@ resource "google_container_node_pool" "mservice_nodes" {
       "https://www.googleapis.com/auth/devstorage.read_only",
       "https://www.googleapis.com/auth/logging.write",
       "https://www.googleapis.com/auth/monitoring",
+    ]
+  }
+}
+
+resource "google_compute_firewall" "mservice_allow_ssh" {
+  name      = "mservice-allow-ssh"
+  network   = "${google_compute_network.mservice_network.name}"
+  direction = "INGRESS"
+
+  allow {
+    protocol = "tcp"
+    ports    = ["22"]
+  }
+
+  source_ranges = ["0.0.0.0/0"]
+  target_tags   = ["ssh-mservice"]
+}
+
+resource "google_compute_instance" "mservice_bastion" {
+  name         = "mservice-bastion"
+  machine_type = "n1-standard-1"
+  zone         = "${var.gcp_zone}"
+
+  tags                      = ["ssh-mservice"]
+  allow_stopping_for_update = true
+
+  boot_disk {
+    initialize_params {
+      image = "debian-cloud/debian-9"
+    }
+  }
+
+  network_interface {
+    subnetwork = "${google_compute_subnetwork.mservice_subnetwork.self_link}"
+
+    access_config {
+      // Ephemeral IP
+    }
+  }
+
+  metadata = {
+    service = "mservicebastion"
+  }
+
+  service_account {
+    scopes = [
+      "userinfo-email",
+      "compute-rw",
+      "storage-rw",
+      "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/cloud-platform.read-only",
+      "https://www.googleapis.com/auth/cloudplatformprojects",
+      "https://www.googleapis.com/auth/cloudplatformprojects.readonly",
     ]
   }
 }
