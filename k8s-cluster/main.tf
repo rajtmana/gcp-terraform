@@ -42,18 +42,18 @@ resource "google_compute_network" "mservice_network" {
 
 resource "google_compute_subnetwork" "mservice_subnetwork" {
   name          = "mservice-subnetwork"
-  ip_cidr_range = "10.2.0.0/16"
+  ip_cidr_range = "10.1.0.0/16"
   region        = "${var.gcp_region}"
   network       = "${google_compute_network.mservice_network.self_link}"
 
   secondary_ip_range {
     range_name    = "mservice-cluster-ip-range"
-    ip_cidr_range = "10.96.0.0/11"
+    ip_cidr_range = "10.2.0.0/20"
   }
 
   secondary_ip_range {
     range_name    = "mservice-service-ip-range"
-    ip_cidr_range = "10.94.0.0/18"
+    ip_cidr_range = "192.168.0.0/24"
   }
 }
 
