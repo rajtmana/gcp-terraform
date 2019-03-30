@@ -21,14 +21,51 @@ resource "google_project_iam_custom_role" "mservice_infra_admin_role" {
   role_id     = "mservice_infra_admin_role"
   title       = "mservice_infra_admin_role"
   description = "Infrastructure Administrator Custom Role"
-  permissions = ["compute.disks.create", "compute.firewalls.create", "compute.firewalls.delete", "compute.firewalls.get", "compute.instanceGroupManagers.get", "compute.instances.create", "compute.instances.delete", "compute.instances.get", "compute.instances.setMetadata", "compute.instances.setServiceAccount", "compute.instances.setTags", "compute.machineTypes.get", "compute.networks.create", "compute.networks.delete", "compute.networks.get", "compute.networks.updatePolicy", "compute.subnetworks.create", "compute.subnetworks.delete", "compute.subnetworks.get", "compute.subnetworks.setPrivateIpGoogleAccess", "compute.subnetworks.update", "compute.subnetworks.use", "compute.subnetworks.useExternalIp", "compute.zones.get", "container.clusters.create", "container.clusters.delete", "container.clusters.get", "container.clusters.update", "container.operations.get"]
+
+  permissions = [
+    "compute.disks.create",
+    "compute.firewalls.create",
+    "compute.firewalls.delete",
+    "compute.firewalls.get",
+    "compute.instanceGroupManagers.get",
+    "compute.instances.create",
+    "compute.instances.delete",
+    "compute.instances.get",
+    "compute.instances.setMetadata",
+    "compute.instances.setServiceAccount",
+    "compute.instances.setTags",
+    "compute.machineTypes.get",
+    "compute.networks.create",
+    "compute.networks.delete",
+    "compute.networks.get",
+    "compute.networks.updatePolicy",
+    "compute.subnetworks.create",
+    "compute.subnetworks.delete",
+    "compute.subnetworks.get",
+    "compute.subnetworks.setPrivateIpGoogleAccess",
+    "compute.subnetworks.update",
+    "compute.subnetworks.use",
+    "compute.subnetworks.useExternalIp",
+    "compute.zones.get",
+    "container.clusters.create",
+    "container.clusters.delete",
+    "container.clusters.get",
+    "container.clusters.update",
+    "container.operations.get",
+  ]
 }
 
 resource "google_project_iam_custom_role" "mservice_svc_admin_role" {
   role_id     = "mservice_svc_admin_role"
   title       = "mservice_svc_admin_role"
   description = "Service Deployment Custom Role"
-  permissions = ["container.clusters.get", "container.clusters.list", "resourcemanager.projects.get"]
+
+  permissions = [
+    "container.apiServices.get",
+    "container.apiServices.list",
+    "container.clusters.get",
+    "container.clusters.getCredentials",
+  ]
 }
 
 resource "google_project_iam_binding" "mservice_infra_binding" {
